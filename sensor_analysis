@@ -1,22 +1,39 @@
 import pandas as pd
 import numpy as np
 import os
+import matplotlib.pyplot as plt
+import re
 
-folder = "D:\\Doc\\Projekty\\sensor RC\\Pomiar 2"
+folder = "D:\\Doc\\Projekty\\rezerwura TiO2\\10x"
 
-#os.chdir(folder)
-
+os.chdir(folder)
 
 # function for data normalisation and analysis
 def Analysis():
+    #raw_data = raw_data['Analog IN 1/V']
+    #data = raw_data.to_numpy()
     ...
 
-def
+def SaveFile():
+    ...
 
 # Iteration over all files
 for filename in os.listdir(folder):
     if filename.endswith(".txt"):
+        # Load data
         raw_data = pd.read_csv(folder + "\\" + filename, sep='\t')
-        print(type(raw_data))
+        # Parse string to float
+        raw_data['Analog IN 1/V'] = pd.to_numeric(raw_data['Analog IN 1/V'].apply(lambda x: re.sub(',', '.', str(x))))
 
-        print(raw_data.loc[:,'Analog IN 1/V'])
+
+        # Parsing data to numpy array
+        raw_data = raw_data['Analog IN 1/V']
+        data = raw_data.to_numpy()
+        # Background correction
+        bg_mean = np.mean(data[:2000])
+        data = data - bg_mean
+        #print(data)
+        plt.plot(data)
+        #raw_data.plot(y='Analog IN 1/V', kind = 'line')
+        plt.show()
+        break
