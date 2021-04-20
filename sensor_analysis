@@ -18,18 +18,18 @@ def Normalize(root, filename):
     raw_data = raw_data['Analog IN 1/V']
     data = raw_data.to_numpy()
 
-    # Background correction
+    # Background correction (vs first 2000 points of each file)
     bg_mean = np.mean(data[:2000])
     data = data - bg_mean
 
     # Normalization to 1 vs first peak in series
     if filename.endswith('loop0.txt'):
         peak_mean = np.mean(data[3250:3400])
-        print(peak_mean)
     data = data / peak_mean
+
     return data
 
-
+# Collect values of peaks into data bins
 def Analyse(data):
     global first_peak_values
     global second_peak_values
@@ -43,12 +43,7 @@ def Analyse(data):
 def Mean_STE(x, y, z):
     global mean
     global ste
-    if x is not None:
-        print(np.shape(x))
-    if y is not None:
-        print(np.shape(y))
-    if z is not None:
-        print(np.shape(z))
+
     mean = (x + y + z) / 3
     deviation1 = abs((x - mean)) ** 2
     deviation2 = abs((y - mean)) ** 2
@@ -56,11 +51,15 @@ def Mean_STE(x, y, z):
     variance = (deviation1 + deviation2 + deviation3) / 3
     std = np.sqrt(variance)
     ste = std / np.sqrt(3)
+    SaveToFile()
     return mean, ste
 
-
 def SaveToFile():
-    ...
+    print(root)
+    mean_save = pd.DataFrame(mean, columns=["1st peak",'2nd peak', '3rd peak'])
+    ste_save = pd.DataFrame(ste, columns=["1st peak", '2nd peak', '3rd peak'])
+    mean_save.to_csv(r'{}\mean'.format(root), index=False, sep='\t')
+    ste_save.to_csv(r'{}\std'.format(root), index=False, sep='\t')
 
 # Sorting files by enumerator of loop. Different filenames are allowed, only the ending matters
 def Sorting_filenames(filename_list):
@@ -121,8 +120,6 @@ for root, dirs, files in os.walk(walk, topdown=False):
 
             if iterator == 21 and folder_number == 3:
                 Mean_STE(collected_peaks1, collected_peaks2, collected_peaks3)
-                print("Statistics:")
-                print(mean, ste)
 
                 # Reset data bins
                 collected_peaks1 = np.array([])
